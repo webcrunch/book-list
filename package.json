@@ -1,0 +1,11 @@
+{
+  "name": "book-list",
+  "version": "1.0.0",
+  "description": "a list of books that you could add books and check them when you have read them",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "jarl lindquist",
+  "license": "ISC"
+}
