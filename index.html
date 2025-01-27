@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista med Kategorier och Modal</title>
+    <title>Lista med Flera Kategorier och Modal</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -12,30 +12,32 @@
     <div class="container">
         <h1>Min Lista</h1>
         <select id="categorySelect">
-            <option value="reacher">Reacher</option>
+            <!-- <option value="reacher">Reacher</option>
             <option value="sherlock">Sherlock Holmes</option>
-            <option value="poirot">Hercule Poirot</option>
+            <option value="poirot">Hercule Poirot</option> -->
         </select>
         <ul id="itemList"></ul>
-        <button id="addItemBtn">Lägg till nytt innehåll</button>
-        <button id="addKatBtn">Lägg till ny kategori</button>
+        <button id="addItemBtn">Lägg till innehåll</button>
+        <button id="addCategoryBtn">Lägg till kategori</button>
     </div>
 
-    <div id="modal" class="modal">
+    <!-- Modal för innehåll -->
+    <div id="itemModal" class="modal">
         <div class="modal-content">
-            <span id="closeModal" class="close">&times;</span>
+            <span id="closeItemModal" class="close">&times;</span>
             <h2>Lägg till nytt innehåll</h2>
             <input type="text" id="newItemInput" placeholder="Nytt innehåll">
             <button id="saveItemBtn">Spara</button>
         </div>
     </div>
 
-    <div id="modal" class="modal">
+    <!-- Modal för kategori -->
+    <div id="categoryModal" class="modal">
         <div class="modal-content">
-            <span id="closeModal" class="close">&times;</span>
+            <span id="closeCategoryModal" class="close">&times;</span>
             <h2>Lägg till ny kategori</h2>
-            <input type="text" id="newKat" placeholder="Ny Kategori">
-            <button id="saveItemBtn">Spara Kategori</button>
+            <input type="text" id="newCategoryInput" placeholder="Ny kategori">
+            <button id="saveCategoryBtn">Spara</button>
         </div>
     </div>
 
