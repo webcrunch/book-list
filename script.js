@@ -14,14 +14,15 @@ document.addEventListener("DOMContentLoaded", function () {
     const saveCategoryBtn = document.getElementById("saveCategoryBtn");
     const newCategoryInput = document.getElementById("newCategoryInput");
 
-    
+
 
 
     const items = {
-        // reacher: [],
-        // sherlock: [],
-        // poirot: []
     };
+
+    if (Object.keys(items).length === 0) {
+        addItemBtn.setAttribute('disabled', true);
+    }
 
     addItemBtn.addEventListener("click", () => {
         itemModal.style.display = "block";
@@ -90,6 +91,9 @@ document.addEventListener("DOMContentLoaded", function () {
         option.value = category;
         option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
         categorySelect.appendChild(option);
+        if (Object.keys(items).length !== 0) {
+            addItemBtn.disabled = false
+        }
     }
 
     categorySelect.addEventListener("change", () => {
