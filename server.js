@@ -25,8 +25,10 @@ app.post('/items', (req, res) => {
         id: items.length + 1,
         category: req.body.category,
         content: req.body.content,
+        description: "",
         completed: false
     };
+
     items.push(item);
     res.status(201).json(item);
 });
@@ -43,16 +45,9 @@ app.put('/items/:id', (req, res) => {
     const item = items.find(i => i.id === parseInt(req.params.id));
     if (!item) return res.status(404).json({ message: 'Cannot find item' });
 
-    if (req.body.category != null) {
-        item.category = req.body.category;
-    }
-    if (req.body.content != null) {
-        item.content = req.body.content;
-    }
-    if (req.body.completed != null) {
-        item.completed = req.body.completed;
-    }
-
+    item.category = req.body.category || ''
+    item.content = req.body.content || ''
+    item.completed = req.body.completed || ''
     res.json(item);
 });
 

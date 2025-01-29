@@ -14,6 +14,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     const saveCategoryBtn = document.getElementById("saveCategoryBtn");
     const newCategoryInput = document.getElementById("newCategoryInput");
 
+    const editModal = document.getElementById("editModal");
+    const closeEditModal = document.getElementById("closeEditModal");
+    const saveEditBtn = document.getElementById("saveEditBtn");
+    const editTitleInput = document.getElementById("editTitleInput");
+    const editDescriptionInput = document.getElementById("editDescriptionInput");
+
     let items = {};
 
     // Hämta items från backend
@@ -22,10 +28,16 @@ document.addEventListener("DOMContentLoaded", async function () {
             const response = await fetch('http://localhost:5000/items');
             const data = await response.json();
             items = data.reduce((acc, item) => {
+
                 if (!acc[item.category]) acc[item.category] = [];
-                acc[item.category].push(item.content);
+                acc[item.category].push({
+                    id: item.id,
+                    content: item.content,
+                    description: item.description || ''
+                });
                 return acc;
             }, {});
+            console.log(items)
             populateCategories();
             displayItems(categorySelect.value);
         } catch (error) {
@@ -45,18 +57,18 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     // Spara ett nytt item till backend
-    async function saveItemToBackend(category, content) {
+    async function saveItemToBackend(category, content, description) {
         try {
             const response = await fetch('http://localhost:5000/items', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ category, content })
+                body: JSON.stringify({ category, content, description })
             });
             const newItem = await response.json();
             if (!items[category]) items[category] = [];
-            items[category].push(newItem.content);
+            items[category].push(newItem);
             displayItems(category);
         } catch (error) {
             console.error("Error saving item:", error);
@@ -81,8 +93,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     saveItemBtn.addEventListener("click", () => {
         const newItemText = newItemInput.value.trim();
         const selectedCategory = categorySelect.value;
+
         if (newItemText) {
-            saveItemToBackend(selectedCategory, newItemText);
+            saveItemToBackend(selectedCategory, newItemText, '');
             newItemInput.value = "";
             itemModal.style.display = "none";
         }
@@ -101,12 +114,49 @@ document.addEventListener("DOMContentLoaded", async function () {
         if (newCategoryText && !items[newCategoryText]) {
             saveCategoryToBackend(newCategoryText);
             newCategoryInput.value = "";
+            // categoryModal.style.display = "none";
         }
     });
 
-    const addItem = (text, category) => {
+    closeEditModal.addEventListener("click", () => {
+        editModal.style.display = "none";
+    });
+
+    saveEditBtn.addEventListener("click", () => {
+        const editedTitle = editTitleInput.value.trim();
+        const editedDescription = editDescriptionInput.value.trim();
+        const selectedCategory = categorySelect.value;
+        const itemId = saveEditBtn.dataset.itemId;
+        if (editedTitle) {
+            updateItemToBackend(itemId, selectedCategory, editedTitle, editedDescription);
+            editTitleInput.value = "";
+            editDescriptionInput.value = "";
+            editModal.style.display = "none";
+        }
+    });
+
+    async function updateItemToBackend(itemId, category, content, description) {
+        try {
+            const response = await fetch(`http://localhost:5000/items/${itemId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ category, content, description })
+            });
+            const updatedItem = await response.json();
+
+            const itemIndex = items[category].findIndex(item => item.id === +itemId);// item.id === itemId
+            items[category][itemIndex] = updatedItem;
+            displayItems(category);
+        } catch (error) {
+            console.error("Error updating item:", error);
+        }
+    }
+
+    const addItem = (title, category, description) => {
         const li = document.createElement("li");
-        li.textContent = `${category.charAt(0).toUpperCase() + category.slice(1)}: ${text}`;
+        li.textContent = `${category.charAt(0).toUpperCase() + category.slice(1)}: ${title}`;
 
         const completeBtn = document.createElement("button");
         completeBtn.textContent = "Läst";
@@ -116,49 +166,32 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const editBtn = document.createElement("button");
         editBtn.textContent = "Ändra";
+        console.log(description, "desc")
+        editBtn.addEventListener("click", () => {
+            const itemId = items[category].find(item => item.content === title).id;
+            editTitleInput.value = title;
+            console.log(description, "desc")
+            editDescriptionInput.value = description;
+            saveEditBtn.dataset.itemId = itemId;
+            editModal.style.display = "block";
+        });
+
         const delBtn = document.createElement("button");
         delBtn.textContent = "Ta bort";
-        editBtn.addEventListener("click", () => {
-            const newText = prompt("Ändra innehåll:", text);
-            if (newText !== null && newText.trim() !== "") {
-                li.firstChild.textContent = `${category.charAt(0).toUpperCase() + category.slice(1)}: ${newText}`;
-                items[category] = items[category].map(item => (item === text ? newText : item));
-            }
-        });
+        // Lägg till radera-funktion om så önskas
 
         li.appendChild(editBtn);
         li.appendChild(delBtn);
         li.appendChild(completeBtn);
         itemList.appendChild(li);
-        items[category].push(text);
     }
 
     const displayItems = (category) => {
         itemList.innerHTML = "";
         if (!items[category]) return;
-        items[category].forEach(text => {
-            const li = document.createElement("li");
-            li.textContent = `${category.charAt(0).toUpperCase() + category.slice(1)}: ${text}`;
-
-            const completeBtn = document.createElement("button");
-            completeBtn.textContent = "Läst";
-            completeBtn.addEventListener("click", () => {
-                li.classList.toggle("completed");
-            });
-
-            const editBtn = document.createElement("button");
-            editBtn.textContent = "Ändra";
-            editBtn.addEventListener("click", () => {
-                const newText = prompt("Ändra innehåll:", text);
-                if (newText !== null && newText.trim() !== "") {
-                    li.firstChild.textContent = `${category.charAt(0).toUpperCase() + category.slice(1)}: ${newText}`;
-                    items[category] = items[category].map(item => (item === text ? newText : item));
-                }
-            });
-
-            li.appendChild(editBtn);
-            li.appendChild(completeBtn);
-            itemList.appendChild(li);
+        items[category].forEach(item => {
+            console.log(item)
+            addItem(item.content, category, item.description);
         });
     }
 
