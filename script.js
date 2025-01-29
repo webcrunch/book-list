@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", async function () {
     const categorySelect = document.getElementById("categorySelect");
     const itemList = document.getElementById("itemList");
     const addItemBtn = document.getElementById("addItemBtn");
@@ -14,12 +14,61 @@ document.addEventListener("DOMContentLoaded", function () {
     const saveCategoryBtn = document.getElementById("saveCategoryBtn");
     const newCategoryInput = document.getElementById("newCategoryInput");
 
+    let items = {};
 
+    // Hämta items från backend
+    async function fetchItems() {
+        try {
+            const response = await fetch('http://localhost:5000/items');
+            const data = await response.json();
+            items = data.reduce((acc, item) => {
+                if (!acc[item.category]) acc[item.category] = [];
+                acc[item.category].push(item.content);
+                return acc;
+            }, {});
+            populateCategories();
+            displayItems(categorySelect.value);
+        } catch (error) {
+            console.error("Error fetching items:", error);
+        }
+    }
 
+    // Populera kategorier i select-menyn
+    function populateCategories() {
+        categorySelect.innerHTML = "";
+        Object.keys(items).forEach(category => {
+            const option = document.createElement("option");
+            option.value = category;
+            option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+            categorySelect.appendChild(option);
+        });
+    }
 
-    const items = {
-        NoKat: []
-    };
+    // Spara ett nytt item till backend
+    async function saveItemToBackend(category, content) {
+        try {
+            const response = await fetch('http://localhost:5000/items', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ category, content })
+            });
+            const newItem = await response.json();
+            if (!items[category]) items[category] = [];
+            items[category].push(newItem.content);
+            displayItems(category);
+        } catch (error) {
+            console.error("Error saving item:", error);
+        }
+    }
+
+    // Spara en ny kategori till backend
+    async function saveCategoryToBackend(category) {
+        if (!items[category]) items[category] = [];
+        populateCategories();
+        displayItems(category);
+    }
 
     addItemBtn.addEventListener("click", () => {
         itemModal.style.display = "block";
@@ -33,9 +82,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const newItemText = newItemInput.value.trim();
         const selectedCategory = categorySelect.value;
         if (newItemText) {
-            addItem(newItemText, selectedCategory);
+            saveItemToBackend(selectedCategory, newItemText);
             newItemInput.value = "";
-            // itemModal.style.display = "none";
+            itemModal.style.display = "none";
         }
     });
 
@@ -50,9 +99,8 @@ document.addEventListener("DOMContentLoaded", function () {
     saveCategoryBtn.addEventListener("click", () => {
         const newCategoryText = newCategoryInput.value.trim().toLowerCase();
         if (newCategoryText && !items[newCategoryText]) {
-            addCategory(newCategoryText);
+            saveCategoryToBackend(newCategoryText);
             newCategoryInput.value = "";
-            categoryModal.style.display = "none";
         }
     });
 
@@ -85,22 +133,9 @@ document.addEventListener("DOMContentLoaded", function () {
         items[category].push(text);
     }
 
-    const addCategory = (category) => {
-        items[category] = [];
-        const option = document.createElement("option");
-        option.value = category;
-        option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-        categorySelect.appendChild(option);
-    }
-
-    categorySelect.addEventListener("change", () => {
-        const selectedCategory = categorySelect.value;
-        displayItems(selectedCategory);
-    });
-
     const displayItems = (category) => {
         itemList.innerHTML = "";
-        if (items[category] == undefined) return
+        if (!items[category]) return;
         items[category].forEach(text => {
             const li = document.createElement("li");
             li.textContent = `${category.charAt(0).toUpperCase() + category.slice(1)}: ${text}`;
@@ -127,5 +162,11 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    displayItems(categorySelect.value);  // Display initial category items
+    categorySelect.addEventListener("change", () => {
+        const selectedCategory = categorySelect.value;
+        displayItems(selectedCategory);
+    });
+
+    // Hämta initiala items från backend
+    await fetchItems();
 });
