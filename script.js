@@ -18,11 +18,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     const items = {
+        NoKat: []
     };
-
-    if (Object.keys(items).length === 0) {
-        addItemBtn.setAttribute('disabled', true);
-    }
 
     addItemBtn.addEventListener("click", () => {
         itemModal.style.display = "block";
@@ -38,7 +35,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (newItemText) {
             addItem(newItemText, selectedCategory);
             newItemInput.value = "";
-            itemModal.style.display = "none";
+            // itemModal.style.display = "none";
         }
     });
 
@@ -59,7 +56,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    function addItem(text, category) {
+    const addItem = (text, category) => {
         const li = document.createElement("li");
         li.textContent = `${category.charAt(0).toUpperCase() + category.slice(1)}: ${text}`;
 
@@ -71,6 +68,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const editBtn = document.createElement("button");
         editBtn.textContent = "Ändra";
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "Ta bort";
         editBtn.addEventListener("click", () => {
             const newText = prompt("Ändra innehåll:", text);
             if (newText !== null && newText.trim() !== "") {
@@ -80,20 +79,18 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         li.appendChild(editBtn);
+        li.appendChild(delBtn);
         li.appendChild(completeBtn);
         itemList.appendChild(li);
         items[category].push(text);
     }
 
-    function addCategory(category) {
+    const addCategory = (category) => {
         items[category] = [];
         const option = document.createElement("option");
         option.value = category;
         option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
         categorySelect.appendChild(option);
-        if (Object.keys(items).length !== 0) {
-            addItemBtn.disabled = false
-        }
     }
 
     categorySelect.addEventListener("change", () => {
@@ -101,7 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
         displayItems(selectedCategory);
     });
 
-    function displayItems(category) {
+    const displayItems = (category) => {
         itemList.innerHTML = "";
         if (items[category] == undefined) return
         items[category].forEach(text => {
