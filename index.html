@@ -4,8 +4,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista med Flera Kategorier och Modal</title>
+    <title>Bok lista</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js');
+        }
+    </script>
 </head>
 
 <body>
@@ -38,7 +44,6 @@
             <button id="saveCategoryBtn">Spara</button>
         </div>
     </div>
-
 
     <!-- Modal för ändring -->
     <div id="editModal" class="modal">
