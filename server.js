@@ -26,7 +26,8 @@ app.post('/items', (req, res) => {
         category: req.body.category,
         content: req.body.content,
         description: "",
-        completed: false
+        completed: false,
+        indispose: false
     };
 
     items.push(item);
@@ -53,11 +54,10 @@ app.put('/items/:id', (req, res) => {
 
 // Ta bort ett enskilt item
 app.delete('/items/:id', (req, res) => {
-    const itemIndex = items.findIndex(i => i.id === parseInt(req.params.id));
-    if (itemIndex === -1) return res.status(404).json({ message: 'Cannot find item' });
-
-    items.splice(itemIndex, 1);
-    res.json({ message: 'Deleted Item' });
+    const item = items.find(i => i.id === parseInt(req.params.id));
+    if (!item) return res.status(404).json({ message: 'Cannot find item' });
+    item.indispose = true
+    res.json(item);
 });
 
 // Starta servern

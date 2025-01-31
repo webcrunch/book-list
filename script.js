@@ -33,11 +33,11 @@ document.addEventListener("DOMContentLoaded", async function () {
                 acc[item.category].push({
                     id: item.id,
                     content: item.content,
-                    description: item.description || ''
+                    description: item.description || '',
+                    indispose: item.indispose
                 });
                 return acc;
             }, {});
-            console.log(items)
             populateCategories();
             displayItems(categorySelect.value);
         } catch (error) {
@@ -154,6 +154,22 @@ document.addEventListener("DOMContentLoaded", async function () {
         }
     }
 
+
+    async function deleteItemToBackend(itemId, category) {
+        try {
+            const response = await fetch(`http://localhost:5000/items/${itemId}`, {
+                method: 'DELETE',
+            });
+            const updatedItem = await response.json();
+            const itemIndex = items[category].findIndex(item => item.id === +itemId);// item.id === itemId
+            items[category][itemIndex] = updatedItem;
+            displayItems(category);
+        } catch (error) {
+            console.error("Error updating item:", error);
+        }
+    }
+
+
     const addItem = (title, category, description) => {
         const li = document.createElement("li");
         li.textContent = `${category.charAt(0).toUpperCase() + category.slice(1)}: ${title}`;
@@ -166,19 +182,24 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         const editBtn = document.createElement("button");
         editBtn.textContent = "Ändra";
-        console.log(description, "desc")
         editBtn.addEventListener("click", () => {
             const itemId = items[category].find(item => item.content === title).id;
             editTitleInput.value = title;
-            console.log(description, "desc")
             editDescriptionInput.value = description;
             saveEditBtn.dataset.itemId = itemId;
             editModal.style.display = "block";
         });
 
+
+
         const delBtn = document.createElement("button");
         delBtn.textContent = "Ta bort";
         // Lägg till radera-funktion om så önskas
+
+        delBtn.addEventListener("click", () => {
+            const itemId = items[category].find(item => item.content === title).id;
+            deleteItemToBackend(itemId, category)
+        })
 
         li.appendChild(editBtn);
         li.appendChild(delBtn);
@@ -190,8 +211,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         itemList.innerHTML = "";
         if (!items[category]) return;
         items[category].forEach(item => {
-            console.log(item)
-            addItem(item.content, category, item.description);
+            if (!item.indispose) addItem(item.content, category, item.description);
         });
     }
 
