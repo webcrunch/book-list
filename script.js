@@ -20,8 +20,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     const editTitleInput = document.getElementById("editTitleInput");
     const editDescriptionInput = document.getElementById("editDescriptionInput");
 
-    let items = {};
-
     // Hämta items från backend
     async function fetchItems() {
         try {
@@ -46,14 +44,32 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     // Populera kategorier i select-menyn
-    function populateCategories() {
-        categorySelect.innerHTML = "";
-        Object.keys(items).forEach(category => {
-            const option = document.createElement("option");
-            option.value = category;
-            option.textContent = category.charAt(0).toUpperCase() + category.slice(1);
-            categorySelect.appendChild(option);
-        });
+    const populateCategories = async (addorupdate = false, data = undefined) => {
+        if (!addorupdate) {
+            try {
+                const response = await fetch('http://localhost:5000/category');
+                const data = await response.json();
+                categorySelect.innerHTML = "";
+                data.forEach(category => {
+                    const option = document.createElement("option");
+                    option.value = category.name;
+                    option.textContent = category.name; //category.charAt(0).name.toUpperCase() + category.name.slice(1)
+                    categorySelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error fetching items:", error);
+            }
+        }
+        else {
+            categorySelect.innerHTML = "";
+            data.forEach(category => {
+                const option = document.createElement("option");
+                option.value = category.name;
+                option.textContent = category.name; //category.charAt(0).name.toUpperCase() + category.name.slice(1)
+                categorySelect.appendChild(option);
+            });
+        }
+
     }
 
     // Spara ett nytt item till backend
@@ -77,9 +93,23 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Spara en ny kategori till backend
     async function saveCategoryToBackend(category) {
-        if (!items[category]) items[category] = [];
-        populateCategories();
-        displayItems(category);
+        const name = category
+        try {
+            const response = await fetch('http://localhost:5000/category', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ name })
+            });
+            const newCat = await response.json();
+            populateCategories(true, newCat);
+            displayItems(category);
+        } catch (error) {
+            console.error("Error saving item:", error);
+        }
+        // if (!items[category]) items[category] = []; // save the category here, set it as a post instead
+
     }
 
     addItemBtn.addEventListener("click", () => {
@@ -111,10 +141,11 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     saveCategoryBtn.addEventListener("click", () => {
         const newCategoryText = newCategoryInput.value.trim().toLowerCase();
+
         if (newCategoryText && !items[newCategoryText]) {
             saveCategoryToBackend(newCategoryText);
             newCategoryInput.value = "";
-            // categoryModal.style.display = "none";
+            //     // categoryModal.style.display = "none";
         }
     });
 
@@ -208,6 +239,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     }
 
     const displayItems = (category) => {
+        console.log(category, items)
         itemList.innerHTML = "";
         if (!items[category]) return;
         items[category].forEach(item => {

@@ -13,11 +13,31 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
 const items = [];
+const category = [];
+
+
+category.push({ id: 0, name: '', content: {} })
 
 // Läs alla items
 app.get('/items', (req, res) => {
     res.json(items);
 });
+
+
+app.get('/category', (req, res) => {
+    res.json(category)
+})
+
+app.post('/category', (req, res) => {
+    category.push({
+        id: category.length,
+        name: req.body.name,
+        content: {}
+    });
+    res.status(201).json(category);
+});
+
+
 
 // Lägg till nytt item
 app.post('/items', (req, res) => {
